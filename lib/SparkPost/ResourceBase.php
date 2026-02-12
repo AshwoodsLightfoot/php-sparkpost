@@ -10,20 +10,20 @@ class ResourceBase
     /**
      * SparkPost object used to make requests.
      */
-    protected $sparkpost;
+    protected SparkPost $sparkpost;
 
     /**
      * The api endpoint that gets prepended to all requests send through this resource.
      */
-    protected $endpoint;
+    protected string $endpoint;
 
     /**
      * Sets up the Resource.
      *
      * @param SparkPost $sparkpost - the sparkpost instance that this resource is attached to
-     * @param string    $endpoint  - the endpoint that this resource wraps
+     * @param string $endpoint - the endpoint that this resource wraps
      */
-    public function __construct(SparkPost $sparkpost, $endpoint)
+    public function __construct(SparkPost $sparkpost, string $endpoint)
     {
         $this->sparkpost = $sparkpost;
         $this->endpoint = $endpoint;
@@ -32,6 +32,8 @@ class ResourceBase
     /**
      * Sends get request to API at the set endpoint.
      *
+     * @return SparkPostPromise|SparkPostResponse
+     * @throws SparkPostException
      * @see SparkPost->request()
      */
     public function get($uri = '', $payload = [], $headers = [])
@@ -42,6 +44,8 @@ class ResourceBase
     /**
      * Sends put request to API at the set endpoint.
      *
+     * @return SparkPostPromise|SparkPostResponse
+     * @throws SparkPostException
      * @see SparkPost->request()
      */
     public function put($uri = '', $payload = [], $headers = [])
@@ -52,6 +56,8 @@ class ResourceBase
     /**
      * Sends post request to API at the set endpoint.
      *
+     * @return SparkPostPromise|SparkPostResponse
+     * @throws SparkPostException
      * @see SparkPost->request()
      */
     public function post($payload = [], $headers = [])
@@ -62,6 +68,8 @@ class ResourceBase
     /**
      * Sends delete request to API at the set endpoint.
      *
+     * @return SparkPostPromise|SparkPostResponse
+     * @throws SparkPostException
      * @see SparkPost->request()
      */
     public function delete($uri = '', $payload = [], $headers = [])
@@ -72,9 +80,10 @@ class ResourceBase
     /**
      * Sends requests to SparkPost object to the resource endpoint.
      *
+     * @return SparkPostPromise|SparkPostResponse depending on sync or async request
+     * @throws SparkPostException
      * @see SparkPost->request()
      *
-     * @return SparkPostPromise or SparkPostResponse depending on sync or async request
      */
     public function request($method = 'GET', $uri = '', $payload = [], $headers = [])
     {
@@ -84,7 +93,7 @@ class ResourceBase
             $uri = '';
         }
 
-        $uri = $this->endpoint.'/'.$uri;
+        $uri = $this->endpoint . '/' . $uri;
 
         return $this->sparkpost->request($method, $uri, $payload, $headers);
     }

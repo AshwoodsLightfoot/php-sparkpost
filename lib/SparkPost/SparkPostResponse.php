@@ -11,17 +11,18 @@ class SparkPostResponse implements ResponseInterface
     /**
      * ResponseInterface to be wrapped by SparkPostResponse.
      */
-    private $response;
+    private ResponseInterface $response;
 
     /**
      * Array with the request values sent.
      */
-    private $request;
+    private ?array $request;
 
     /**
      * set the response to be wrapped.
      *
      * @param ResponseInterface $response
+     * @param null $request
      */
     public function __construct(ResponseInterface $response, $request = null)
     {
@@ -34,7 +35,7 @@ class SparkPostResponse implements ResponseInterface
      *
      * @return array $request
      */
-    public function getRequest()
+    public function getRequest(): ?array
     {
         return $this->request;
     }

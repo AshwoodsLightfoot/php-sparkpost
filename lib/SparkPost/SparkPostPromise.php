@@ -9,17 +9,18 @@ class SparkPostPromise implements HttpPromise
     /**
      * HttpPromise to be wrapped by SparkPostPromise.
      */
-    private $promise;
+    private HttpPromise $promise;
 
     /**
      * Array with the request values sent.
      */
-    private $request;
+    private ?array $request;
 
     /**
      * set the promise to be wrapped.
      *
      * @param HttpPromise $promise
+     * @param null $request
      */
     public function __construct(HttpPromise $promise, $request = null)
     {
@@ -30,18 +31,19 @@ class SparkPostPromise implements HttpPromise
     /**
      * Hand off the response functions to the original promise and return a custom response or exception.
      *
-     * @param callable $onFulfilled - function to be called if the promise is fulfilled
-     * @param callable $onRejected  - function to be called if the promise is rejected
+     * @param callable|null $onFulfilled - function to be called if the promise is fulfilled
+     * @param callable|null $onRejected - function to be called if the promise is rejected
+     * @return HttpPromise
      */
-    public function then(callable $onFulfilled = null, callable $onRejected = null)
+    public function then(callable $onFulfilled = null, callable $onRejected = null): HttpPromise
     {
         $request = $this->request;
 
-        return $this->promise->then(function ($response) use ($onFulfilled, $request) {
+        return $this->promise->then(function ($response) use ($onFulfilled, $request): void {
             if (isset($onFulfilled)) {
                 $onFulfilled(new SparkPostResponse($response, $request));
             }
-        }, function ($exception) use ($onRejected, $request) {
+        }, function ($exception) use ($onRejected, $request): void {
             if (isset($onRejected)) {
                 $onRejected(new SparkPostException($exception, $request));
             }
@@ -51,9 +53,9 @@ class SparkPostPromise implements HttpPromise
     /**
      * Hand back the state.
      *
-     * @return $state - returns the state of the promise
+     * @return string $state - returns the state of the promise
      */
-    public function getState()
+    public function getState(): string
     {
         return $this->promise->getState();
     }
@@ -67,13 +69,13 @@ class SparkPostPromise implements HttpPromise
      *
      * @throws SparkPostException
      */
-    public function wait($unwrap = true)
+    public function wait($unwrap = true): SparkPostResponse
     {
         try {
             $response = $this->promise->wait($unwrap);
 
             return $response ? new SparkPostResponse($response, $this->request) : $response;
-        } catch (\Exception $exception) {
+        } catch (\Exception| \Throwable $exception) {
             throw new SparkPostException($exception, $this->request);
         }
     }

@@ -30,13 +30,13 @@ class Transmission extends ResourceBase
      *
      * @return array - the modified request body
      */
-    public function formatPayload($payload)
+    public function formatPayload(array $payload): array
     {
         $payload = $this->formatBlindCarbonCopy($payload); //Fixes BCCs into payload
         $payload = $this->formatCarbonCopy($payload); //Fixes CCs into payload
-        $payload = $this->formatShorthandRecipients($payload); //Fixes shorthand recipients format
+        //Fixes shorthand recipients format
 
-        return $payload;
+        return $this->formatShorthandRecipients($payload);
     }
 
     /**
@@ -46,9 +46,8 @@ class Transmission extends ResourceBase
      *
      * @return array - the modified request body
      */
-    private function formatBlindCarbonCopy($payload)
+    private function formatBlindCarbonCopy(array $payload): array
     {
-
         //If there's a list of BCC recipients, move them into the correct format
         if (isset($payload['bcc'])) {
             $payload = $this->addListToRecipients($payload, 'bcc');
@@ -64,16 +63,17 @@ class Transmission extends ResourceBase
      *
      * @return array - the modified request body
      */
-    private function formatCarbonCopy($payload)
+    private function formatCarbonCopy(array $payload): array
     {
         if (isset($payload['cc'])) {
             $ccAddresses = [];
-            for ($i = 0; $i < count($payload['cc']); ++$i) {
-                array_push($ccAddresses, $this->toAddressString($payload['cc'][$i]['address']));
+            $counter = count($payload['cc']);
+            for ($i = 0; $i < $counter; ++$i) {
+                $ccAddresses[] = $this->toAddressString($payload['cc'][$i]['address']);
             }
 
             // set up the content headers as either what it was before or an empty array
-            $payload['content']['headers'] = isset($payload['content']['headers']) ? $payload['content']['headers'] : [];
+            $payload['content']['headers'] ??= [];
             // add cc header
             $payload['content']['headers']['CC'] = implode(',', $ccAddresses);
 
@@ -89,14 +89,16 @@ class Transmission extends ResourceBase
      * @param array $payload - the request body
      *
      * @return array - the modified request body
+     * @throws \Exception
      */
-    private function formatShorthandRecipients($payload)
+    private function formatShorthandRecipients(array $payload): array
     {
         if (isset($payload['content']['from'])) {
             $payload['content']['from'] = $this->toAddressObject($payload['content']['from']);
         }
+        $counter = count($payload['recipients']);
 
-        for ($i = 0; $i < count($payload['recipients']); ++$i) {
+        for ($i = 0; $i < $counter; ++$i) {
             $payload['recipients'][$i]['address'] = $this->toAddressObject($payload['recipients'][$i]['address']);
         }
 
@@ -106,12 +108,13 @@ class Transmission extends ResourceBase
     /**
      * Loops through the given listName in the payload and adds all the recipients to the recipients list after removing their names.
      *
-     * @param array $payload  - the request body
-     * @param array $listName - the name of the array in the payload to be moved to the recipients list
+     * @param array $payload - the request body
+     * @param string $listName - the name of the array in the payload to be moved to the recipients list
      *
      * @return array - the modified request body
+     * @throws \Exception
      */
-    private function addListToRecipients($payload, $listName)
+    private function addListToRecipients(array $payload, string $listName): array
     {
         $originalAddress = $this->toAddressString($payload['recipients'][0]['address']);
         foreach ($payload[$listName] as $recipient) {
@@ -123,7 +126,7 @@ class Transmission extends ResourceBase
                 unset($recipient['address']['name']);
             }
 
-            array_push($payload['recipients'], $recipient);
+            $payload['recipients'][] = $recipient;
         }
 
         //Delete the original object from the payload.
@@ -138,8 +141,9 @@ class Transmission extends ResourceBase
      * @param $address - the shorthand form of an email address "Name <Email address>"
      *
      * @return array - the longhand form of an email address [ "name" => "John", "email" => "john@exmmple.com" ]
+     * @throws \Exception
      */
-    private function toAddressObject($address)
+    private function toAddressObject($address): array
     {
         $formatted = $address;
         if (is_string($formatted)) {
@@ -152,7 +156,7 @@ class Transmission extends ResourceBase
                 $formatted['name'] = $matches[1];
                 $formatted['email'] = $matches[2];
             } else {
-                throw new \Exception('Invalid address format: '.$address);
+                throw new \Exception('Invalid address format: ' . $address);
             }
         }
 
@@ -163,17 +167,12 @@ class Transmission extends ResourceBase
      * Takes the longhand form of an email address and converts it to the shorthand form.
      *
      * @param $address - the longhand form of an email address [ "name" => "John", "email" => "john@exmmple.com" ]
-     * @param string - the shorthand form of an email address "Name <Email address>"
      */
-    private function toAddressString($address)
+    private function toAddressString($address): string
     {
         // convert object to string
         if (!is_string($address)) {
-            if (isset($address['name'])) {
-                $address = '"'.$address['name'].'" <'.$address['email'].'>';
-            } else {
-                $address = $address['email'];
-            }
+            $address = isset($address['name']) ? '"' . $address['name'] . '" <' . $address['email'] . '>' : $address['email'];
         }
 
         return $address;
@@ -183,9 +182,9 @@ class Transmission extends ResourceBase
      * Checks if a string is an email.
      *
      * @param string $email - a string that might be an email address
-     * @param bool - true if the given string is an email
+     * @return bool - true if the given string is an email
      */
-    private function isEmail($email)
+    private function isEmail(string $email): bool
     {
         if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return true;
