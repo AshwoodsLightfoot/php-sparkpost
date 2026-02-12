@@ -2,25 +2,33 @@
 
 namespace SparkPost\Test;
 
+use Http\Client\Exception;
+use Http\Client\Exception\HttpException;
 use Http\Client\HttpAsyncClient;
 use Http\Client\HttpClient;
-use Http\Message\MessageFactory;
+use Http\Promise\Promise;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\RequestInterface;
 use Nyholm\NSA;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use SparkPost\SparkPost;
+use SparkPost\SparkPostException;
 use SparkPost\SparkPostPromise;
 use GuzzleHttp\Promise\FulfilledPromise as GuzzleFulfilledPromise;
 use GuzzleHttp\Promise\RejectedPromise as GuzzleRejectedPromise;
-use Http\Adapter\Guzzle6\Promise as GuzzleAdapterPromise;
+use Http\Adapter\Guzzle7\Promise as GuzzleAdapterPromise;
 use Mockery;
+use SparkPost\SparkPostResponse;
 
 class SparkPostTest extends TestCase
 {
-    public $badResponseBody;
+    public array $badResponseBody;
     public $badResponseMock;
     private $clientMock;
     /** @var SparkPost */
-    private \SparkPost\SparkPost $resource;
+    private SparkPost $resource;
 
     private $exceptionMock;
     private array $exceptionBody;
@@ -46,41 +54,44 @@ class SparkPostTest extends TestCase
         'campaign_id' => 'thanksgiving',
     ];
 
+    /**
+     * @throws \Exception
+     */
     public function setUp(): void
     {
         // response mock up
-        $responseBodyMock = Mockery::mock(\Psr\Http\Message\StreamInterface::class);
+        $responseBodyMock = Mockery::mock(StreamInterface::class);
         $this->responseBody = ['results' => 'yay'];
-        $this->responseMock = Mockery::mock(\Psr\Http\Message\ResponseInterface::class);
+        $this->responseMock = Mockery::mock(ResponseInterface::class);
         $this->responseMock->shouldReceive('getStatusCode')->andReturn(200);
         $this->responseMock->shouldReceive('getBody')->andReturn($responseBodyMock);
         $responseBodyMock->shouldReceive('__toString')->andReturn(json_encode($this->responseBody));
 
-        $errorBodyMock = Mockery::mock(\Psr\Http\Message\StreamInterface::class);
+        $errorBodyMock = Mockery::mock(StreamInterface::class);
         $this->badResponseBody = ['errors' => []];
-        $this->badResponseMock = Mockery::mock(\Psr\Http\Message\ResponseInterface::class);
+        $this->badResponseMock = Mockery::mock(ResponseInterface::class);
         $this->badResponseMock->shouldReceive('getStatusCode')->andReturn(503);
         $this->badResponseMock->shouldReceive('getBody')->andReturn($errorBodyMock);
         $errorBodyMock->shouldReceive('__toString')->andReturn(json_encode($this->badResponseBody));
 
         // exception mock up
-        $exceptionResponseMock = Mockery::mock(\Psr\Http\Message\ResponseInterface::class);
-        $exceptionResponseBodyMock = Mockery::mock(\Psr\Http\Message\StreamInterface::class);
+        $exceptionResponseMock = Mockery::mock(ResponseInterface::class);
+        $exceptionResponseBodyMock = Mockery::mock(StreamInterface::class);
         $this->exceptionBody = ['results' => 'failed'];
-        $this->exceptionMock = Mockery::mock(\Http\Client\Exception\HttpException::class);
+        $this->exceptionMock = Mockery::mock(HttpException::class);
         $this->exceptionMock->shouldReceive('getResponse')->andReturn($exceptionResponseMock);
         $exceptionResponseMock->shouldReceive('getStatusCode')->andReturn(500);
         $exceptionResponseMock->shouldReceive('getBody')->andReturn($exceptionResponseBodyMock);
         $exceptionResponseBodyMock->shouldReceive('__toString')->andReturn(json_encode($this->exceptionBody));
 
         // promise mock up
-        $this->promiseMock = Mockery::mock(\Http\Promise\Promise::class);
+        $this->promiseMock = Mockery::mock(Promise::class);
 
         //setup mock for the adapter
-        $this->clientMock = Mockery::mock(\Http\Adapter\Guzzle6\Client::class);
-        $this->clientMock->shouldReceive('sendAsyncRequest')->
-        with(Mockery::type(\GuzzleHttp\Psr7\Request::class))->
-        andReturn($this->promiseMock);
+        $this->clientMock = Mockery::mock(HttpClient::class, HttpAsyncClient::class);
+        $this->clientMock->shouldReceive('sendAsyncRequest')
+            ->with(Mockery::type(RequestInterface::class))
+            ->andReturn($this->promiseMock);
 
         $this->resource = new SparkPost($this->clientMock, ['key' => 'SPARKPOST_API_KEY']);
     }
@@ -90,29 +101,41 @@ class SparkPostTest extends TestCase
         Mockery::close();
     }
 
+    /**
+     * @throws SparkPostException
+     * @throws \Exception
+     */
     public function testRequestSync(): void
     {
         $this->resource->setOptions(['async' => false]);
         $this->clientMock->shouldReceive('sendRequest')->andReturn($this->responseMock);
 
         $this->assertInstanceOf(
-            \SparkPost\SparkPostResponse::class,
+            SparkPostResponse::class,
             $this->resource->request('POST', 'transmissions', $this->postTransmissionPayload)
         );
     }
 
+    /**
+     * @throws SparkPostException
+     * @throws \Exception
+     */
     public function testRequestAsync(): void
     {
-        $promiseMock = Mockery::mock(\Http\Promise\Promise::class);
+        $promiseMock = Mockery::mock(Promise::class);
         $this->resource->setOptions(['async' => true]);
         $this->clientMock->shouldReceive('sendAsyncRequest')->andReturn($promiseMock);
 
         $this->assertInstanceOf(
-            \SparkPost\SparkPostPromise::class,
+            SparkPostPromise::class,
             $this->resource->request('GET', 'transmissions', $this->getTransmissionPayload)
         );
     }
 
+    /**
+     * @throws SparkPostException
+     * @throws \Exception
+     */
     public function testDebugOptionWhenFalse(): void
     {
         $this->resource->setOptions(['async' => false, 'debug' => false]);
@@ -120,9 +143,13 @@ class SparkPostTest extends TestCase
 
         $response = $this->resource->request('POST', 'transmissions', $this->postTransmissionPayload);
 
-        $this->assertEquals($response->getRequest(), null);
+        $this->assertEquals(null, $response->getRequest());
     }
 
+    /**
+     * @throws SparkPostException
+     * @throws \Exception
+     */
     public function testDebugOptionWhenTrue(): void
     {
         // setup
@@ -143,11 +170,15 @@ class SparkPostTest extends TestCase
         }
     }
 
+    /**
+     * @throws Exception
+     * @throws SparkPostException
+     */
     public function testSuccessfulSyncRequest(): void
     {
         $this->clientMock->shouldReceive('sendRequest')->
         once()->
-        with(Mockery::type(\GuzzleHttp\Psr7\Request::class))->
+        with(Mockery::type(RequestInterface::class))->
         andReturn($this->responseMock);
 
         $response = $this->resource->syncRequest('POST', 'transmissions', $this->postTransmissionPayload);
@@ -160,21 +191,26 @@ class SparkPostTest extends TestCase
     {
         $this->clientMock->shouldReceive('sendRequest')->
         once()->
-        with(Mockery::type(\GuzzleHttp\Psr7\Request::class))->
+        with(Mockery::type(RequestInterface::class))->
         andThrow($this->exceptionMock);
 
         try {
             $this->resource->syncRequest('POST', 'transmissions', $this->postTransmissionPayload);
-        } catch (\Exception $e) {
+        } catch (\Exception|Exception $e) {
             $this->assertEquals($this->exceptionBody, $e->getBody());
             $this->assertEquals(500, $e->getCode());
         }
     }
 
+    /**
+     * @throws Exception
+     * @throws SparkPostException
+     * @throws \Exception
+     */
     public function testSuccessfulSyncRequestWithRetries(): void
     {
         $this->clientMock->shouldReceive('sendRequest')->
-        with(Mockery::type(\GuzzleHttp\Psr7\Request::class))->
+        with(Mockery::type(RequestInterface::class))->
         andReturn($this->badResponseMock, $this->badResponseMock, $this->responseMock);
 
         $this->resource->setOptions(['retries' => 2]);
@@ -184,11 +220,15 @@ class SparkPostTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
     }
 
+    /**
+     * @throws Exception
+     * @throws \Exception
+     */
     public function testUnsuccessfulSyncRequestWithRetries(): void
     {
         $this->clientMock->shouldReceive('sendRequest')->
         once()->
-        with(Mockery::type(\GuzzleHttp\Psr7\Request::class))->
+        with(Mockery::type(RequestInterface::class))->
         andThrow($this->exceptionMock);
 
         $this->resource->setOptions(['retries' => 2]);
@@ -200,6 +240,10 @@ class SparkPostTest extends TestCase
         }
     }
 
+    /**
+     * @throws SparkPostException
+     * @throws \Exception
+     */
     public function testSuccessfulAsyncRequestWithWait(): void
     {
         $this->promiseMock->shouldReceive('wait')->andReturn($this->responseMock);
@@ -211,6 +255,9 @@ class SparkPostTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
     }
 
+    /**
+     * @throws \Exception
+     */
     public function testUnsuccessfulAsyncRequestWithWait(): void
     {
         $this->promiseMock->shouldReceive('wait')->andThrow($this->exceptionMock);
@@ -225,6 +272,9 @@ class SparkPostTest extends TestCase
         }
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function testSuccessfulAsyncRequestWithThen(): void
     {
         $guzzlePromise = new GuzzleFulfilledPromise($this->responseMock);
@@ -236,9 +286,12 @@ class SparkPostTest extends TestCase
         $promise->then(function ($response) use ($responseBody): void {
             $this->assertEquals(200, $response->getStatusCode());
             $this->assertEquals($responseBody, $response->getBodyDecoded());
-        }, null)->wait();
+        })->wait();
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function testUnsuccessfulAsyncRequestWithThen(): void
     {
         $guzzlePromise = new GuzzleRejectedPromise($this->exceptionMock);
@@ -253,17 +306,20 @@ class SparkPostTest extends TestCase
         })->wait();
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function testSuccessfulAsyncRequestWithRetries(): void
     {
         $testReq = $this->resource->buildRequest('POST', 'transmissions', $this->postTransmissionPayload, []);
-        $clientMock = Mockery::mock(\Http\Adapter\Guzzle6\Client::class);
-        $clientMock->shouldReceive('sendAsyncRequest')->
-        with(Mockery::type(\GuzzleHttp\Psr7\Request::class))->
-        andReturn(
-            new GuzzleAdapterPromise(new GuzzleFulfilledPromise($this->badResponseMock), $testReq),
-            new GuzzleAdapterPromise(new GuzzleFulfilledPromise($this->badResponseMock), $testReq),
-            new GuzzleAdapterPromise(new GuzzleFulfilledPromise($this->responseMock), $testReq)
-        );
+        $clientMock = Mockery::mock(HttpClient::class, HttpAsyncClient::class);
+        $clientMock->shouldReceive('sendAsyncRequest')
+            ->with(Mockery::type(RequestInterface::class))
+            ->andReturn(
+                new GuzzleAdapterPromise(new GuzzleFulfilledPromise($this->badResponseMock), $testReq),
+                new GuzzleAdapterPromise(new GuzzleFulfilledPromise($this->badResponseMock), $testReq),
+                new GuzzleAdapterPromise(new GuzzleFulfilledPromise($this->responseMock), $testReq)
+            );
 
         $resource = new SparkPost($clientMock, ['key' => 'SPARKPOST_API_KEY']);
 
@@ -274,14 +330,17 @@ class SparkPostTest extends TestCase
         })->wait();
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function testUnsuccessfulAsyncRequestWithRetries(): void
     {
         $testReq = $this->resource->buildRequest('POST', 'transmissions', $this->postTransmissionPayload, []);
         $rejectedPromise = new GuzzleRejectedPromise($this->exceptionMock);
-        $clientMock = Mockery::mock(\Http\Adapter\Guzzle6\Client::class);
-        $clientMock->shouldReceive('sendAsyncRequest')->
-        with(Mockery::type(\GuzzleHttp\Psr7\Request::class))->
-        andReturn(new GuzzleAdapterPromise($rejectedPromise, $testReq));
+        $clientMock = Mockery::mock(HttpClient::class, HttpAsyncClient::class);
+        $clientMock->shouldReceive('sendAsyncRequest')
+            ->with(Mockery::type(RequestInterface::class))
+            ->andReturn(new GuzzleAdapterPromise($rejectedPromise, $testReq));
 
         $resource = new SparkPost($clientMock, ['key' => 'SPARKPOST_API_KEY']);
 
@@ -293,6 +352,9 @@ class SparkPostTest extends TestCase
         })->wait();
     }
 
+    /**
+     * @throws \Exception
+     */
     public function testPromise(): void
     {
         $promise = $this->resource->asyncRequest('POST', 'transmissions', $this->postTransmissionPayload);
@@ -308,7 +370,7 @@ class SparkPostTest extends TestCase
     {
         $this->expectException(\Exception::class);
 
-        $this->resource->setHttpClient(Mockery::mock(\Http\Client\HttpClient::class));
+        $this->resource->setHttpClient(Mockery::mock(HttpClient::class));
 
         $this->resource->asyncRequest('POST', 'transmissions', $this->postTransmissionPayload);
     }
@@ -355,6 +417,9 @@ class SparkPostTest extends TestCase
         $this->resource->setHttpClient(new \stdClass());
     }
 
+    /**
+     * @throws \Exception
+     */
     public function testSetOptionsStringKey(): void
     {
         $this->resource->setOptions('SPARKPOST_API_KEY');
@@ -370,11 +435,11 @@ class SparkPostTest extends TestCase
         $this->resource->setOptions(['not' => 'SPARKPOST_API_KEY']);
     }
 
-    public function testSetMessageFactory(): void
+    public function testSetRequestFactory(): void
     {
-        $messageFactory = Mockery::mock(MessageFactory::class);
-        $this->resource->setMessageFactory($messageFactory);
+        $messageFactory = Mockery::mock(RequestFactoryInterface::class);
+        $this->resource->setRequestFactory($messageFactory);
 
-        $this->assertEquals($messageFactory, NSA::invokeMethod($this->resource, 'getMessageFactory'));
+        $this->assertEquals($messageFactory, NSA::invokeMethod($this->resource, 'getRequestFactory'));
     }
 }

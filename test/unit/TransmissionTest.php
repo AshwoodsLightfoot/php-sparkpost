@@ -3,14 +3,19 @@
 namespace SparkPost\Test;
 
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use SparkPost\SparkPost;
 use Mockery;
+use Psr\Http\Message\RequestInterface;
+use Http\Client\HttpClient;
+use SparkPost\SparkPostException;
 
 class TransmissionTest extends TestCase
 {
     private $clientMock;
     /** @var SparkPost */
-    private \SparkPost\SparkPost $resource;
+    private SparkPost $resource;
 
     private array $postTransmissionPayload = [
         'content' => [
@@ -50,12 +55,13 @@ class TransmissionTest extends TestCase
      *
      * @before
      *
+     * @throws \Exception
      * @see PHPUnit_Framework_TestCase::setUp()
      */
     public function setUp(): void
     {
         //setup mock for the adapter
-        $this->clientMock = Mockery::mock(\Http\Adapter\Guzzle6\Client::class);
+        $this->clientMock = Mockery::mock(HttpClient::class);
 
         $this->resource = new SparkPost($this->clientMock, ['key' => 'SPARKPOST_API_KEY', 'async' => false]);
     }
@@ -76,16 +82,19 @@ class TransmissionTest extends TestCase
         $response = $this->resource->transmissions->post($this->postTransmissionPayload);
     }
 
+    /**
+     * @throws SparkPostException
+     */
     public function testGet(): void
     {
-        $responseMock = Mockery::mock(\Psr\Http\Message\ResponseInterface::class);
-        $responseBodyMock = Mockery::mock(\Psr\Http\Message\StreamInterface::class);
+        $responseMock = Mockery::mock(ResponseInterface::class);
+        $responseBodyMock = Mockery::mock(StreamInterface::class);
 
         $responseBody = ['results' => 'yay'];
 
         $this->clientMock->shouldReceive('sendRequest')->
         once()->
-        with(Mockery::type(\GuzzleHttp\Psr7\Request::class))->
+        with(Mockery::type(RequestInterface::class))->
         andReturn($responseMock);
 
         $responseMock->shouldReceive('getStatusCode')->andReturn(200);
@@ -98,16 +107,19 @@ class TransmissionTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
     }
 
+    /**
+     * @throws SparkPostException
+     */
     public function testPut(): void
     {
-        $responseMock = Mockery::mock(\Psr\Http\Message\ResponseInterface::class);
-        $responseBodyMock = Mockery::mock(\Psr\Http\Message\StreamInterface::class);
+        $responseMock = Mockery::mock(ResponseInterface::class);
+        $responseBodyMock = Mockery::mock(StreamInterface::class);
 
         $responseBody = ['results' => 'yay'];
 
         $this->clientMock->shouldReceive('sendRequest')->
         once()->
-        with(Mockery::type(\GuzzleHttp\Psr7\Request::class))->
+        with(Mockery::type(RequestInterface::class))->
         andReturn($responseMock);
 
         $responseMock->shouldReceive('getStatusCode')->andReturn(200);
@@ -122,14 +134,14 @@ class TransmissionTest extends TestCase
 
     public function testPost(): void
     {
-        $responseMock = Mockery::mock(\Psr\Http\Message\ResponseInterface::class);
-        $responseBodyMock = Mockery::mock(\Psr\Http\Message\StreamInterface::class);
+        $responseMock = Mockery::mock(ResponseInterface::class);
+        $responseBodyMock = Mockery::mock(StreamInterface::class);
 
         $responseBody = ['results' => 'yay'];
 
         $this->clientMock->shouldReceive('sendRequest')->
         once()->
-        with(Mockery::type(\GuzzleHttp\Psr7\Request::class))->
+        with(Mockery::type(RequestInterface::class))->
         andReturn($responseMock);
 
         $responseMock->shouldReceive('getStatusCode')->andReturn(200);
@@ -147,14 +159,14 @@ class TransmissionTest extends TestCase
         $postTransmissionPayload = $this->postTransmissionPayload;
         $postTransmissionPayload['recipients'] = ['list_id' => 'SOME_LIST_ID'];
 
-        $responseMock = Mockery::mock(\Psr\Http\Message\ResponseInterface::class);
-        $responseBodyMock = Mockery::mock(\Psr\Http\Message\StreamInterface::class);
+        $responseMock = Mockery::mock(ResponseInterface::class);
+        $responseBodyMock = Mockery::mock(StreamInterface::class);
 
         $responseBody = ['results' => 'yay'];
 
         $this->clientMock->shouldReceive('sendRequest')->
         once()->
-        with(Mockery::type(\GuzzleHttp\Psr7\Request::class))->
+        with(Mockery::type(RequestInterface::class))->
         andReturn($responseMock);
 
         $responseMock->shouldReceive('getStatusCode')->andReturn(200);
@@ -167,16 +179,19 @@ class TransmissionTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
     }
 
+    /**
+     * @throws SparkPostException
+     */
     public function testDelete(): void
     {
-        $responseMock = Mockery::mock(\Psr\Http\Message\ResponseInterface::class);
-        $responseBodyMock = Mockery::mock(\Psr\Http\Message\StreamInterface::class);
+        $responseMock = Mockery::mock(ResponseInterface::class);
+        $responseBodyMock = Mockery::mock(StreamInterface::class);
 
         $responseBody = ['results' => 'yay'];
 
         $this->clientMock->shouldReceive('sendRequest')->
         once()->
-        with(Mockery::type(\GuzzleHttp\Psr7\Request::class))->
+        with(Mockery::type(RequestInterface::class))->
         andReturn($responseMock);
 
         $responseMock->shouldReceive('getStatusCode')->andReturn(200);

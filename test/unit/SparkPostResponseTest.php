@@ -3,12 +3,15 @@
 namespace SparkPost\Test;
 
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\MessageInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use SparkPost\SparkPostResponse;
 use Mockery;
 
 class SparkPostResponseTest extends TestCase
 {
-    /** @var Mockery\MockInterface|\Psr\Http\Message\ResponseInterface */
+    /** @var Mockery\MockInterface|ResponseInterface */
     private $responseMock;
     /** @var string */
     private string $returnValue;
@@ -16,7 +19,7 @@ class SparkPostResponseTest extends TestCase
     public function setUp(): void
     {
         $this->returnValue = 'some_value_to_return';
-        $this->responseMock = Mockery::mock(\Psr\Http\Message\ResponseInterface::class);
+        $this->responseMock = Mockery::mock(ResponseInterface::class);
     }
 
     public function testGetProtocolVersion(): void
@@ -29,7 +32,7 @@ class SparkPostResponseTest extends TestCase
     public function testWithProtocolVersion(): void
     {
         $param = 'protocol version';
-        $messageMock = Mockery::mock(\Psr\Http\Message\MessageInterface::class);
+        $messageMock = Mockery::mock(MessageInterface::class);
 
         $this->responseMock->shouldReceive('withProtocolVersion')->andReturn($messageMock);
         $sparkpostResponse = new SparkPostResponse($this->responseMock);
@@ -77,7 +80,7 @@ class SparkPostResponseTest extends TestCase
     {
         $param = 'header';
         $param2 = 'value';
-        $messageMock = Mockery::mock(\Psr\Http\Message\MessageInterface::class);
+        $messageMock = Mockery::mock(MessageInterface::class);
 
         $this->responseMock->shouldReceive('withHeader')->andReturn($messageMock);
         $sparkpostResponse = new SparkPostResponse($this->responseMock);
@@ -91,7 +94,7 @@ class SparkPostResponseTest extends TestCase
     {
         $param = 'header';
         $param2 = 'value';
-        $messageMock = Mockery::mock(\Psr\Http\Message\MessageInterface::class);
+        $messageMock = Mockery::mock(MessageInterface::class);
 
         $this->responseMock->shouldReceive('withAddedHeader')->andReturn($messageMock);
         $sparkpostResponse = new SparkPostResponse($this->responseMock);
@@ -104,7 +107,7 @@ class SparkPostResponseTest extends TestCase
     public function testWithoutHeader(): void
     {
         $param = 'header';
-        $messageMock = Mockery::mock(\Psr\Http\Message\MessageInterface::class);
+        $messageMock = Mockery::mock(MessageInterface::class);
 
         $this->responseMock->shouldReceive('withoutHeader')->andReturn($messageMock);
         $sparkpostResponse = new SparkPostResponse($this->responseMock);
@@ -121,8 +124,8 @@ class SparkPostResponseTest extends TestCase
 
     public function testWithBody(): void
     {
-        $param = Mockery::mock(\Psr\Http\Message\StreamInterface::class);
-        $messageMock = Mockery::mock(\Psr\Http\Message\MessageInterface::class);
+        $param = Mockery::mock(StreamInterface::class);
+        $messageMock = Mockery::mock(MessageInterface::class);
 
         $this->responseMock->shouldReceive('withBody')->andReturn($messageMock);
         $sparkpostResponse = new SparkPostResponse($this->responseMock);

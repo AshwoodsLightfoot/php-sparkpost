@@ -5,9 +5,10 @@ namespace SparkPost;
 use Http\Client\Exception;
 use Http\Client\HttpClient;
 use Http\Client\HttpAsyncClient;
-use Http\Discovery\MessageFactoryDiscovery;
-use Http\Message\RequestFactory;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 
 class SparkPost
 {
@@ -22,9 +23,14 @@ class SparkPost
     private $httpClient;
 
     /**
-     * @var RequestFactory
+     * @var RequestFactoryInterface
      */
-    private RequestFactory $messageFactory;
+    private RequestFactoryInterface $requestFactory;
+
+    /**
+     * @var StreamFactoryInterface
+     */
+    private StreamFactoryInterface $streamFactory;
 
     /**
      * @var array Options for requests
@@ -223,7 +229,17 @@ class SparkPost
      */
     public function buildRequestInstance($method, $url, $headers, $body): RequestInterface
     {
-        return $this->getMessageFactory()->createRequest($method, $url, $headers, $body);
+        $request = $this->getRequestFactory()->createRequest($method, $url);
+
+        foreach ($headers as $name => $value) {
+            $request = $request->withHeader($name, $value);
+        }
+
+        if (isset($body) && $body !== '' && $body !== []) {
+            $request = $request->withBody($this->getStreamFactory()->createStream($body));
+        }
+
+        return $request;
     }
 
     /**
@@ -368,25 +384,49 @@ class SparkPost
     }
 
     /**
-     * @return RequestFactory
+     * @return RequestFactoryInterface
      */
-    private function getMessageFactory(): RequestFactory
+    private function getRequestFactory(): RequestFactoryInterface
     {
-        if (!isset($this->messageFactory)) {
-            $this->messageFactory = MessageFactoryDiscovery::find();
+        if (!isset($this->requestFactory)) {
+            $this->requestFactory = Psr17FactoryDiscovery::findRequestFactory();
         }
 
-        return $this->messageFactory;
+        return $this->requestFactory;
     }
 
     /**
-     * @param RequestFactory $messageFactory
+     * @return StreamFactoryInterface
+     */
+    private function getStreamFactory(): StreamFactoryInterface
+    {
+        if (!isset($this->streamFactory)) {
+            $this->streamFactory = Psr17FactoryDiscovery::findStreamFactory();
+        }
+
+        return $this->streamFactory;
+    }
+
+    /**
+     * @param RequestFactoryInterface $requestFactory
      *
      * @return SparkPost
      */
-    public function setMessageFactory(RequestFactory $messageFactory): self
+    public function setRequestFactory(RequestFactoryInterface $requestFactory): self
     {
-        $this->messageFactory = $messageFactory;
+        $this->requestFactory = $requestFactory;
+
+        return $this;
+    }
+
+    /**
+     * @param StreamFactoryInterface $streamFactory
+     *
+     * @return SparkPost
+     */
+    public function setStreamFactory(StreamFactoryInterface $streamFactory): self
+    {
+        $this->streamFactory = $streamFactory;
 
         return $this;
     }
