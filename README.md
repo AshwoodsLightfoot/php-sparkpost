@@ -4,6 +4,8 @@
 
 # SparkPost PHP Library
 
+## This fork is maintained internally due to inactivity in the upstream repository. Only used within Lightfoot projects.
+
 [![Travis CI](https://travis-ci.org/SparkPost/php-sparkpost.svg?branch=master)](https://travis-ci.org/SparkPost/php-sparkpost)
 [![Coverage Status](https://coveralls.io/repos/SparkPost/php-sparkpost/badge.svg?branch=master&service=github)](https://coveralls.io/github/SparkPost/php-sparkpost?branch=master)
 [![Downloads](https://img.shields.io/packagist/dt/sparkpost/sparkpost.svg?maxAge=3600)](https://packagist.org/packages/sparkpost/sparkpost)
