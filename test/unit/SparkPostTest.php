@@ -102,6 +102,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test that request() returns a SparkPostResponse when async option is false.
+     *
+     * Why: Ensures the SparkPost client correctly handles synchronous request mode.
+     * How: Sets 'async' to false, mocks the client's sendRequest method, and asserts the returned object is a SparkPostResponse.
+     *
      * @throws SparkPostException
      * @throws \Exception
      */
@@ -117,6 +122,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test that request() returns a SparkPostPromise when async option is true.
+     *
+     * Why: Ensures the SparkPost client correctly handles asynchronous request mode.
+     * How: Sets 'async' to true, mocks the client's sendAsyncRequest method, and asserts the returned object is a SparkPostPromise.
+     *
      * @throws SparkPostException
      * @throws \Exception
      */
@@ -133,6 +143,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test that the debug option, when false, does not include request data in the response.
+     *
+     * Why: Verifies that sensitive or large request data is not attached to the response object by default.
+     * How: Sets 'debug' to false, executes a request, and asserts that getRequest() on the resulting response returns null.
+     *
      * @throws SparkPostException
      * @throws \Exception
      */
@@ -147,6 +162,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test that the debug option, when true, includes request data in successful and failed responses.
+     *
+     * Why: Ensures developers can access original request parameters from response/exception objects for debugging.
+     * How: Sets 'debug' to true, executes requests (one success, one failure), and verifies that request data is correctly attached.
+     *
      * @throws SparkPostException
      * @throws \Exception
      */
@@ -171,6 +191,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test a successful synchronous request.
+     *
+     * Why: Verifies that syncRequest() correctly processes a successful API call.
+     * How: Mocks a successful sendRequest call and asserts the SparkPostResponse contains the expected body and status code.
+     *
      * @throws Exception
      * @throws SparkPostException
      */
@@ -187,6 +212,12 @@ class SparkPostTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
     }
 
+    /**
+     * Test an unsuccessful synchronous request.
+     *
+     * Why: Ensures that HTTP client exceptions are properly wrapped and re-thrown as SparkPostExceptions.
+     * How: Mocks a client exception during sendRequest and verifies that a SparkPostException is caught with correct error details.
+     */
     public function testUnsuccessfulSyncRequest(): void
     {
         $this->clientMock->shouldReceive('sendRequest')->
@@ -203,6 +234,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test synchronous request with automatic retries on 5xx errors.
+     *
+     * Why: Verifies that the client correctly retries transient server errors.
+     * How: Mocks the client to return multiple 503 responses followed by a 200, and verifies the final success.
+     *
      * @throws Exception
      * @throws SparkPostException
      * @throws \Exception
@@ -221,6 +257,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test that synchronous retries are exhausted after the specified number of attempts.
+     *
+     * Why: Ensures the client doesn't retry indefinitely and eventually reports the failure.
+     * How: Mocks a persistent client exception and verifies that it is thrown after the configured retry limit is reached.
+     *
      * @throws Exception
      * @throws \Exception
      */
@@ -241,6 +282,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test a successful asynchronous request followed by wait().
+     *
+     * Why: Verifies the basic async request-response flow using promise wait().
+     * How: Mocks an async request that returns a promise, and asserts that wait() on the returned SparkPostPromise yield correct data.
+     *
      * @throws SparkPostException
      * @throws \Exception
      */
@@ -256,6 +302,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test an unsuccessful asynchronous request followed by wait().
+     *
+     * Why: Ensures that async failures are correctly reported when wait() is called.
+     * How: Mocks an async request that returns a rejected promise and verifies wait() throws a SparkPostException.
+     *
      * @throws \Exception
      */
     public function testUnsuccessfulAsyncRequestWithWait(): void
@@ -273,6 +324,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test a successful asynchronous request using then() callbacks.
+     *
+     * Why: Verifies that the onFulfilled callback is correctly triggered with a SparkPostResponse.
+     * How: Uses a Guzzle fulfilled promise and verifies the then() callback receives the expected status and body.
+     *
      * @throws \Throwable
      */
     public function testSuccessfulAsyncRequestWithThen(): void
@@ -290,6 +346,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test an unsuccessful asynchronous request using then() callbacks.
+     *
+     * Why: Verifies that the onRejected callback is correctly triggered with a SparkPostException.
+     * How: Uses a Guzzle rejected promise and verifies the then() callback receives the expected error code and body.
+     *
      * @throws \Throwable
      */
     public function testUnsuccessfulAsyncRequestWithThen(): void
@@ -307,6 +368,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test asynchronous request with automatic retries on 5xx errors.
+     *
+     * Why: Verifies that the async promise chain correctly handles transient errors via retries.
+     * How: Mocks multiple 503 responses in the async client and verifies the final successful response is delivered to the then() callback.
+     *
      * @throws \Throwable
      */
     public function testSuccessfulAsyncRequestWithRetries(): void
@@ -331,6 +397,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test that asynchronous retries are exhausted after the specified number of attempts.
+     *
+     * Why: Ensures the async chain eventually fails if the server is persistently broken.
+     * How: Mocks a rejected promise and verifies the final error is propagated to the then() rejection callback.
+     *
      * @throws \Throwable
      */
     public function testUnsuccessfulAsyncRequestWithRetries(): void
@@ -353,6 +424,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test that the SparkPostPromise correctly reports its state.
+     *
+     * Why: Verifies that state checks are correctly delegated to the underlying promise.
+     * How: Mocks the underlying promise's getState method and asserts the SparkPostPromise wrapper returns the same states.
+     *
      * @throws \Exception
      */
     public function testPromise(): void
@@ -366,6 +442,12 @@ class SparkPostTest extends TestCase
         $this->assertEquals($this->promiseMock->getState(), $promise->getState());
     }
 
+    /**
+     * Test that an exception is thrown when attempting an async request with a non-async client.
+     *
+     * Why: Prevents runtime errors by validating client capabilities early.
+     * How: Sets a synchronous-only mock client and verifies that calling asyncRequest throws an exception.
+     */
     public function testUnsupportedAsyncRequest(): void
     {
         $this->expectException(\Exception::class);
@@ -375,6 +457,12 @@ class SparkPostTest extends TestCase
         $this->resource->asyncRequest('POST', 'transmissions', $this->postTransmissionPayload);
     }
 
+    /**
+     * Test that HTTP headers are correctly constructed, including defaults and custom headers.
+     *
+     * Why: Ensures the API receives mandatory headers (Auth, Content-Type, User-Agent) correctly.
+     * How: Calls getHttpHeaders with a custom header and asserts all expected headers (default and custom) are present and correct.
+     */
     public function testGetHttpHeaders(): void
     {
         $headers = $this->resource->getHttpHeaders([
@@ -389,6 +477,12 @@ class SparkPostTest extends TestCase
         $this->assertEquals('php-sparkpost/' . $version, $headers['User-Agent']);
     }
 
+    /**
+     * Test that the API URL is correctly constructed with path and query parameters.
+     *
+     * Why: Ensures requests are sent to the correct API endpoint with properly formatted query strings.
+     * How: Calls getUrl with a path and array of parameters, and asserts the generated URL matches the expected format.
+     */
     public function testGetUrl(): void
     {
         $url = 'https://api.sparkpost.com:443/api/v1/transmissions?key=value 1,value 2,value 3';
@@ -396,6 +490,12 @@ class SparkPostTest extends TestCase
         $this->assertEquals($url, $testUrl);
     }
 
+    /**
+     * Test that a synchronous HTTP client can be set.
+     *
+     * Why: Ensures flexibility in choosing HTTP client implementations.
+     * How: Sets a mock HttpClient and uses reflection to verify the private property was updated.
+     */
     public function testSetHttpClient(): void
     {
         $mock = Mockery::mock(HttpClient::class);
@@ -403,6 +503,12 @@ class SparkPostTest extends TestCase
         $this->assertEquals($mock, NSA::getProperty($this->resource, 'httpClient'));
     }
 
+    /**
+     * Test that an asynchronous HTTP client can be set.
+     *
+     * Why: Ensures flexibility in choosing async-capable HTTP client implementations.
+     * How: Sets a mock HttpAsyncClient and uses reflection to verify the private property was updated.
+     */
     public function testSetHttpAsyncClient(): void
     {
         $mock = Mockery::mock(HttpAsyncClient::class);
@@ -410,6 +516,12 @@ class SparkPostTest extends TestCase
         $this->assertEquals($mock, NSA::getProperty($this->resource, 'httpClient'));
     }
 
+    /**
+     * Test that an exception is thrown when setting an invalid HTTP client.
+     *
+     * Why: Ensures type safety and prevents runtime errors from incompatible client objects.
+     * How: Attempts to set an invalid object (stdClass) as the HTTP client and asserts an exception is thrown.
+     */
     public function testSetHttpClientException(): void
     {
         $this->expectException(\Exception::class);
@@ -418,6 +530,11 @@ class SparkPostTest extends TestCase
     }
 
     /**
+     * Test that options can be initialized using just a string as the API key.
+     *
+     * Why: Provides a convenient shorthand for common client initialization.
+     * How: Passes a string to setOptions and verifies the 'key' option is correctly set while others remain at defaults.
+     *
      * @throws \Exception
      */
     public function testSetOptionsStringKey(): void
@@ -427,6 +544,12 @@ class SparkPostTest extends TestCase
         $this->assertEquals('SPARKPOST_API_KEY', $options['key']);
     }
 
+    /**
+     * Test that an exception is thrown if no API key is provided in the options.
+     *
+     * Why: Ensures the client cannot be misconfigured without a mandatory API key.
+     * How: Attempts to set options without a 'key' and asserts that an exception is thrown.
+     */
     public function testSetBadOptions(): void
     {
         $this->expectException(\Exception::class);
@@ -435,6 +558,12 @@ class SparkPostTest extends TestCase
         $this->resource->setOptions(['not' => 'SPARKPOST_API_KEY']);
     }
 
+    /**
+     * Test that a custom PSR-17 Request Factory can be set.
+     *
+     * Why: Allows developers to use their preferred PSR-17 implementation.
+     * How: Sets a mock RequestFactoryInterface and verifies it is retrieved by the internal factory getter.
+     */
     public function testSetRequestFactory(): void
     {
         $messageFactory = Mockery::mock(RequestFactoryInterface::class);

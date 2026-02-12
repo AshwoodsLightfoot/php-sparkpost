@@ -71,6 +71,12 @@ class TransmissionTest extends TestCase
         Mockery::close();
     }
 
+    /**
+     * Test that an invalid email format in recipients throws an exception.
+     *
+     * Why: Verifies that the Transmission resource validates email addresses before sending the request to the API.
+     * How: Adds an invalid email to the payload and asserts that calling post() throws an Exception.
+     */
     public function testInvalidEmailFormat(): void
     {
         $this->expectException(\Exception::class);
@@ -83,6 +89,11 @@ class TransmissionTest extends TestCase
     }
 
     /**
+     * Test a GET request to the transmissions endpoint.
+     *
+     * Why: Verifies that the Transmission resource correctly delegates GET requests to the SparkPost client.
+     * How: Mocks a successful GET request and verifies the response matches the expected mock data.
+     *
      * @throws SparkPostException
      */
     public function testGet(): void
@@ -108,6 +119,11 @@ class TransmissionTest extends TestCase
     }
 
     /**
+     * Test a PUT request to the transmissions endpoint.
+     *
+     * Why: Verifies that the Transmission resource correctly delegates PUT requests to the SparkPost client.
+     * How: Mocks a successful PUT request and verifies the response matches the expected mock data.
+     *
      * @throws SparkPostException
      */
     public function testPut(): void
@@ -132,6 +148,12 @@ class TransmissionTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
     }
 
+    /**
+     * Test a POST request to the transmissions endpoint.
+     *
+     * Why: Verifies that the Transmission resource correctly formats payloads and sends POST requests.
+     * How: Mocks a successful POST request and verifies the response matches the expected mock data.
+     */
     public function testPost(): void
     {
         $responseMock = Mockery::mock(ResponseInterface::class);
@@ -154,6 +176,12 @@ class TransmissionTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
     }
 
+    /**
+     * Test a POST request using a stored recipient list ID.
+     *
+     * Why: Ensures that when a list_id is used, individual recipient formatting is bypassed.
+     * How: Provides a list_id in the payload and verifies the POST request is successful without recipient validation errors.
+     */
     public function testPostWithRecipientList(): void
     {
         $postTransmissionPayload = $this->postTransmissionPayload;
@@ -180,6 +208,11 @@ class TransmissionTest extends TestCase
     }
 
     /**
+     * Test a DELETE request to the transmissions endpoint.
+     *
+     * Why: Verifies that the Transmission resource correctly delegates DELETE requests to the SparkPost client.
+     * How: Mocks a successful DELETE request and verifies the response matches the expected mock data.
+     *
      * @throws SparkPostException
      */
     public function testDelete(): void
@@ -204,6 +237,12 @@ class TransmissionTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
     }
 
+    /**
+     * Test the payload formatting logic.
+     *
+     * Why: Verifies the complex transformation of transmission payloads into the format required by the API.
+     * How: Passes a raw payload to formatPayload() and asserts the output matches a predefined correctly formatted JSON structure.
+     */
     public function testFormatPayload(): void
     {
         $correctFormattedPayload = json_decode(
