@@ -202,6 +202,11 @@ class SparkPost
 
         // old form-feed workaround now removed
         $body = json_encode($body);
+
+        if ($body === false) {
+            throw new \Exception('JSON encoding error: ' . json_last_error_msg());
+        }
+
         return [
             'method' => $method,
             'url' => $url,
