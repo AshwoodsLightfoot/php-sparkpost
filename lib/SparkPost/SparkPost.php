@@ -68,7 +68,7 @@ class SparkPost
      *
      * @return SparkPostPromise|SparkPostResponse Promise or Response depending on sync or async request
      * @throws SparkPostException
-     * @throws \Exception|Exception|ClientExceptionInterface
+     * @throws \Exception
      */
     public function request(string $method = 'GET', string $uri = '', array $payload = [], array $headers = [])
     {
@@ -89,7 +89,8 @@ class SparkPost
      *
      * @return SparkPostResponse
      *
-     * @throws SparkPostException|Exception|ClientExceptionInterface
+     * @throws SparkPostException
+     * @throws \Exception
      */
     public function syncRequest(string $method = 'GET', string $uri = '', array $payload = [], array $headers = []): SparkPostResponse
     {
@@ -104,7 +105,7 @@ class SparkPost
                     $request
                 );
             return new SparkPostResponse($resp, $this->ifDebug($requestValues));
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             throw new SparkPostException($exception, $this->ifDebug($requestValues));
         }
     }
@@ -184,6 +185,7 @@ class SparkPost
      * @param array $headers
      *
      * @return array $requestValues
+     * @throws \Exception
      */
     public function buildRequestValues(string $method, string $uri, array $payload, array $headers): array
     {
@@ -247,6 +249,7 @@ class SparkPost
      * @param array $payload
      * @param array $headers
      * @return RequestInterface
+     * @throws \Exception
      */
     public function buildRequest(string $method, string $uri, array $payload, array $headers): RequestInterface
     {

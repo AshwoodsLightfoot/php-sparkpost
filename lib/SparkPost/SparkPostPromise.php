@@ -75,7 +75,7 @@ class SparkPostPromise implements HttpPromise
             $response = $this->promise->wait($unwrap);
 
             return $response ? new SparkPostResponse($response, $this->request) : $response;
-        } catch (\Exception| \Throwable $exception) {
+        } catch (\Throwable $exception) {
             throw new SparkPostException($exception, $this->request);
         }
     }

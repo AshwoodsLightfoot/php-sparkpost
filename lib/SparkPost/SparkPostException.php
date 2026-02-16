@@ -19,10 +19,10 @@ class SparkPostException extends \Exception
     /**
      * Sets up the custom exception and copies over original exception values.
      *
-     * @param \Exception $exception - the exception to be wrapped
+     * @param \Throwable $exception - the exception to be wrapped
      * @param null $request
      */
-    public function __construct(\Exception $exception, $request = null)
+    public function __construct(\Throwable $exception, $request = null)
     {
         $this->request = $request;
 
@@ -34,7 +34,7 @@ class SparkPostException extends \Exception
             $code = $exception->getResponse()->getStatusCode();
         }
 
-        parent::__construct($message, $code, $exception->getPrevious());
+        parent::__construct($message, $code, $exception);
     }
 
     /**
