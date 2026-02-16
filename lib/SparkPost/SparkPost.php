@@ -346,11 +346,8 @@ class SparkPost
         }
 
         // Validate API key because its required
-        if (
-            !isset($this->options['key'])
-            && (!isset($options['key'])
-                || !preg_match('/\S/', $options['key'])
-            )) {
+        $keyToValidate = $options['key'] ?? $this->options['key'] ?? '';
+        if (!preg_match('/\S/', $keyToValidate)) {
             throw new \Exception('You must provide an API key');
         }
 
