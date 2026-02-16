@@ -8,7 +8,8 @@ use Psr\Http\Message\StreamInterface;
 use SparkPost\SparkPost;
 use Mockery;
 use Psr\Http\Message\RequestInterface;
-use Http\Client\HttpClient;
+use Http\Client\HttpAsyncClient;
+use Psr\Http\Client\ClientInterface;
 use SparkPost\SparkPostException;
 
 class TransmissionTest extends TestCase
@@ -61,7 +62,7 @@ class TransmissionTest extends TestCase
     public function setUp(): void
     {
         //setup mock for the adapter
-        $this->clientMock = Mockery::mock(HttpClient::class);
+        $this->clientMock = Mockery::mock(ClientInterface::class);
 
         $this->resource = new SparkPost($this->clientMock, ['key' => 'SPARKPOST_API_KEY', 'async' => false]);
     }

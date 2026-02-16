@@ -20,9 +20,9 @@ class SparkPostPromise implements HttpPromise
      * set the promise to be wrapped.
      *
      * @param HttpPromise $promise
-     * @param null $request
+     * @param array|null $request
      */
-    public function __construct(HttpPromise $promise, $request = null)
+    public function __construct(HttpPromise $promise, ?array $request = null)
     {
         $this->promise = $promise;
         $this->request = $request;
@@ -35,7 +35,7 @@ class SparkPostPromise implements HttpPromise
      * @param callable|null $onRejected - function to be called if the promise is rejected
      * @return HttpPromise
      */
-    public function then(callable $onFulfilled = null, callable $onRejected = null): HttpPromise
+    public function then(?callable $onFulfilled = null, ?callable $onRejected = null): HttpPromise
     {
         $request = $this->request;
 

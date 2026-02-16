@@ -5,8 +5,8 @@ namespace SparkPost\Test;
 use Http\Client\Exception;
 use Http\Client\Exception\HttpException;
 use Http\Client\HttpAsyncClient;
-use Http\Client\HttpClient;
 use Http\Promise\Promise;
+use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Nyholm\NSA;
@@ -88,7 +88,7 @@ class SparkPostTest extends TestCase
         $this->promiseMock = Mockery::mock(Promise::class);
 
         //setup mock for the adapter
-        $this->clientMock = Mockery::mock(HttpClient::class, HttpAsyncClient::class);
+        $this->clientMock = Mockery::mock(ClientInterface::class, HttpAsyncClient::class);
         $this->clientMock->shouldReceive('sendAsyncRequest')
             ->with(Mockery::type(RequestInterface::class))
             ->andReturn($this->promiseMock);
@@ -378,7 +378,7 @@ class SparkPostTest extends TestCase
     public function testSuccessfulAsyncRequestWithRetries(): void
     {
         $testReq = $this->resource->buildRequest('POST', 'transmissions', $this->postTransmissionPayload, []);
-        $clientMock = Mockery::mock(HttpClient::class, HttpAsyncClient::class);
+        $clientMock = Mockery::mock(ClientInterface::class, HttpAsyncClient::class);
         $clientMock->shouldReceive('sendAsyncRequest')
             ->with(Mockery::type(RequestInterface::class))
             ->andReturn(
@@ -408,7 +408,7 @@ class SparkPostTest extends TestCase
     {
         $testReq = $this->resource->buildRequest('POST', 'transmissions', $this->postTransmissionPayload, []);
         $rejectedPromise = new GuzzleRejectedPromise($this->exceptionMock);
-        $clientMock = Mockery::mock(HttpClient::class, HttpAsyncClient::class);
+        $clientMock = Mockery::mock(ClientInterface::class, HttpAsyncClient::class);
         $clientMock->shouldReceive('sendAsyncRequest')
             ->with(Mockery::type(RequestInterface::class))
             ->andReturn(new GuzzleAdapterPromise($rejectedPromise, $testReq));
@@ -452,7 +452,7 @@ class SparkPostTest extends TestCase
     {
         $this->expectException(\Exception::class);
 
-        $this->resource->setHttpClient(Mockery::mock(HttpClient::class));
+        $this->resource->setHttpClient(Mockery::mock(ClientInterface::class));
 
         $this->resource->asyncRequest('POST', 'transmissions', $this->postTransmissionPayload);
     }
@@ -494,11 +494,11 @@ class SparkPostTest extends TestCase
      * Test that a synchronous HTTP client can be set.
      *
      * Why: Ensures flexibility in choosing HTTP client implementations.
-     * How: Sets a mock HttpClient and uses reflection to verify the private property was updated.
+     * How: Sets a mock ClientInterface and uses reflection to verify the private property was updated.
      */
     public function testSetHttpClient(): void
     {
-        $mock = Mockery::mock(HttpClient::class);
+        $mock = Mockery::mock(ClientInterface::class);
         $this->resource->setHttpClient($mock);
         $this->assertEquals($mock, NSA::getProperty($this->resource, 'httpClient'));
     }

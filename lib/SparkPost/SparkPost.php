@@ -3,10 +3,10 @@
 namespace SparkPost;
 
 use Http\Client\Exception;
-use Http\Client\HttpClient;
 use Http\Client\HttpAsyncClient;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -18,7 +18,7 @@ class SparkPost
     private string $version = '2.3.0';
 
     /**
-     * @var HttpClient|HttpAsyncClient used to make requests
+     * @var ClientInterface|HttpAsyncClient used to make requests
      */
     private $httpClient;
 
@@ -47,11 +47,11 @@ class SparkPost
     /**
      * Sets up the SparkPost instance.
      *
-     * @param HttpClient $httpClient - An httplug client or adapter
+     * @param ClientInterface $httpClient - An httplug client or adapter
      * @param array $options - An array to overide default options or a string to be used as an API key
      * @throws \Exception
      */
-    public function __construct(HttpClient $httpClient, array $options)
+    public function __construct(ClientInterface $httpClient, array $options)
     {
         $this->setOptions($options);
         $this->setHttpClient($httpClient);
@@ -68,7 +68,7 @@ class SparkPost
      *
      * @return SparkPostPromise|SparkPostResponse Promise or Response depending on sync or async request
      * @throws SparkPostException
-     * @throws \Exception|Exception
+     * @throws \Exception|Exception|ClientExceptionInterface
      */
     public function request(string $method = 'GET', string $uri = '', array $payload = [], array $headers = [])
     {
@@ -300,17 +300,17 @@ class SparkPost
     /**
      * Sets $httpClient to be used for request.
      *
-     * @param HttpClient|HttpAsyncClient $httpClient - the client to be used for request
+     * @param ClientInterface|HttpAsyncClient $httpClient - the client to be used for request
      *
      * @return SparkPost
      */
     public function setHttpClient($httpClient): self
     {
-        if (!$httpClient instanceof HttpClient && !$httpClient instanceof HttpAsyncClient) {
+        if (!$httpClient instanceof ClientInterface && !$httpClient instanceof HttpAsyncClient) {
             throw new \LogicException(
                 sprintf(
                     'Parameter to SparkPost::setHttpClient must be instance of "%s" or "%s"',
-                    HttpClient::class,
+                    ClientInterface::class,
                     HttpAsyncClient::class
                 )
             );
