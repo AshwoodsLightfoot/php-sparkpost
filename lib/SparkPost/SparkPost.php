@@ -6,15 +6,15 @@ use Http\Client\Exception;
 use Http\Client\HttpClient;
 use Http\Client\HttpAsyncClient;
 use Http\Discovery\Psr17FactoryDiscovery;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
 class SparkPost
 {
-    /**
-     * @var string Library version, used for setting User-Agent
-     */
+
     private string $version = '2.3.0';
 
     /**
@@ -22,19 +22,10 @@ class SparkPost
      */
     private $httpClient;
 
-    /**
-     * @var RequestFactoryInterface
-     */
     private RequestFactoryInterface $requestFactory;
 
-    /**
-     * @var StreamFactoryInterface
-     */
     private StreamFactoryInterface $streamFactory;
 
-    /**
-     * @var array Options for requests
-     */
     private array $options;
 
     /**
@@ -51,9 +42,6 @@ class SparkPost
         'retries' => 0
     ];
 
-    /**
-     * @var Transmission Instance of Transmission class
-     */
     public Transmission $transmissions;
 
     /**
@@ -80,7 +68,7 @@ class SparkPost
      *
      * @return SparkPostPromise|SparkPostResponse Promise or Response depending on sync or async request
      * @throws SparkPostException
-     * @throws \Exception
+     * @throws \Exception|Exception
      */
     public function request(string $method = 'GET', string $uri = '', array $payload = [], array $headers = [])
     {
@@ -101,7 +89,7 @@ class SparkPost
      *
      * @return SparkPostResponse
      *
-     * @throws SparkPostException|Exception
+     * @throws SparkPostException|Exception|ClientExceptionInterface
      */
     public function syncRequest(string $method = 'GET', string $uri = '', array $payload = [], array $headers = []): SparkPostResponse
     {
@@ -122,9 +110,9 @@ class SparkPost
     }
 
     /**
-     * @throws Exception
+     * @throws Exception|ClientExceptionInterface
      */
-    private function syncReqWithRetry($request, $retries)
+    private function syncReqWithRetry( RequestInterface $request, int $retries): ResponseInterface
     {
         $resp = $this->httpClient->sendRequest($request);
         $status = $resp->getStatusCode();
@@ -145,8 +133,12 @@ class SparkPost
      * @return SparkPostPromise
      * @throws \Exception
      */
-    public function asyncRequest(string $method = 'GET', string $uri = '', array $payload = [], array $headers = []): SparkPostPromise
-    {
+    public function asyncRequest(
+        string $method = 'GET',
+        string $uri = '',
+        array $payload = [],
+        array $headers = []
+    ): SparkPostPromise {
         if ($this->httpClient instanceof HttpAsyncClient) {
             $requestValues = $this->buildRequestValues($method, $uri, $payload, $headers);
             $request = call_user_func_array([$this, 'buildRequestInstance'], $requestValues);
@@ -172,7 +164,7 @@ class SparkPost
     /**
      * @throws \Exception
      */
-    private function asyncReqWithRetry($request, $retries)
+    private function asyncReqWithRetry(RequestInterface $request, int $retries)
     {
         return $this->httpClient->sendAsyncRequest($request)->then(function ($response) use ($request, $retries) {
             $status = $response->getStatusCode();
@@ -221,13 +213,13 @@ class SparkPost
     /**
      * Build RequestInterface from given params.
      *
-     * @param $method
-     * @param $url
-     * @param $headers
-     * @param $body
+     * @param string $method
+     * @param string $url
+     * @param array $headers
+     * @param array|string $body
      * @return RequestInterface
      */
-    public function buildRequestInstance($method, $url, $headers, $body): RequestInterface
+    public function buildRequestInstance(string $method, string $url, array $headers, $body): RequestInterface
     {
         $request = $this->getRequestFactory()->createRequest($method, $url);
 
@@ -245,13 +237,13 @@ class SparkPost
     /**
      * Build RequestInterface from given params.
      *
-     * @param $method
-     * @param $uri
-     * @param $payload
-     * @param $headers
+     * @param string $method
+     * @param string $uri
+     * @param array $payload
+     * @param array $headers
      * @return RequestInterface
      */
-    public function buildRequest($method, $uri, $payload, $headers): RequestInterface
+    public function buildRequest(string $method, string $uri, array $payload, array $headers): RequestInterface
     {
         $requestValues = $this->buildRequestValues($method, $uri, $payload, $headers);
         return call_user_func_array([$this, 'buildRequestInstance'], $requestValues);

@@ -36,7 +36,7 @@ class ResourceBase
      * @throws SparkPostException
      * @see SparkPost->request()
      */
-    public function get($uri = '', $payload = [], $headers = [])
+    public function get(string $uri = '', array $payload = [], array $headers = [])
     {
         return $this->request('GET', $uri, $payload, $headers);
     }
@@ -48,7 +48,7 @@ class ResourceBase
      * @throws SparkPostException
      * @see SparkPost->request()
      */
-    public function put($uri = '', $payload = [], $headers = [])
+    public function put(string $uri = '', array $payload = [], array $headers = [])
     {
         return $this->request('PUT', $uri, $payload, $headers);
     }
@@ -60,7 +60,7 @@ class ResourceBase
      * @throws SparkPostException
      * @see SparkPost->request()
      */
-    public function post($payload = [], $headers = [])
+    public function post(array $payload = [], array $headers = [])
     {
         return $this->request('POST', '', $payload, $headers);
     }
@@ -72,7 +72,7 @@ class ResourceBase
      * @throws SparkPostException
      * @see SparkPost->request()
      */
-    public function delete($uri = '', $payload = [], $headers = [])
+    public function delete(string $uri = '', array $payload = [], array $headers = [])
     {
         return $this->request('DELETE', $uri, $payload, $headers);
     }
@@ -85,7 +85,7 @@ class ResourceBase
      * @see SparkPost->request()
      *
      */
-    public function request($method = 'GET', $uri = '', $payload = [], $headers = [])
+    public function request(string $method = 'GET', string $uri = '', array $payload = [], array $headers = [])
     {
         if (is_array($uri)) {
             $headers = $payload;

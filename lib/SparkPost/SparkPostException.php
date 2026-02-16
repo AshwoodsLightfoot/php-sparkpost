@@ -9,7 +9,7 @@ class SparkPostException extends \Exception
     /**
      * Variable to hold json decoded body from http response.
      */
-    private $body = null;
+    private ?array $body = null;
 
     /**
      * Array with the request values sent.

@@ -166,7 +166,7 @@ class Transmission extends ResourceBase
     /**
      * Takes the longhand form of an email address and converts it to the shorthand form.
      *
-     * @param $address - the longhand form of an email address [ "name" => "John", "email" => "john@exmmple.com" ]
+     * @param string|array $address - the longhand form of an email address [ "name" => "John", "email" => "john@exmmple.com" ]
      */
     private function toAddressString($address): string
     {
