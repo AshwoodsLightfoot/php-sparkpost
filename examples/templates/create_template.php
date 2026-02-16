@@ -2,7 +2,7 @@
 
 namespace Examples\Templates;
 
-require dirname(__FILE__).'/../bootstrap.php';
+require __DIR__ . '/../bootstrap.php';
 
 use SparkPost\SparkPost;
 use GuzzleHttp\Client;
@@ -22,16 +22,16 @@ $sending_domain = "steve2-test.trymsys.net";
 // Valid short template content examples
 $plain_text = 'Write your text message part here.';
 
-$html = <<<HTML
+$html = <<<HTML_WRAP
 <!DOCTYPE html>
 <html lang="en">
 <body>
   <p><strong>Write your HTML message part here</strong></p>
 </body>
 </html>
-HTML;
+HTML_WRAP;
 
-$amp_html = <<<HTML
+$amp_html = <<<HTML_WRAP
 <!doctype html>
 <html ⚡4email>
 <head>
@@ -43,25 +43,25 @@ $amp_html = <<<HTML
 Hello World! Let's get started using AMP HTML together!
 </body>
 </html>
-HTML;
+HTML_WRAP;
 
 $promise = $sparky->request('POST', 'templates', [
-  'name' => $template_name,
-  'id' => $template_id,
-  'content' => [
-    'from' => "from@$sending_domain",
-    'subject' => 'Your Subject',
-    'text' => $plain_text,
-    'html' => $html,
-    'amp_html' => $amp_html,
-  ],
+    'name' => $template_name,
+    'id' => $template_id,
+    'content' => [
+        'from' => "from@$sending_domain",
+        'subject' => 'Your Subject',
+        'text' => $plain_text,
+        'html' => $html,
+        'amp_html' => $amp_html,
+    ],
 ]);
 
 try {
     $response = $promise->wait();
-    echo $response->getStatusCode()."\n";
-    print_r($response->getBody())."\n";
+    echo $response->getStatusCode() . "\n";
+    print_r($response->getBody()) . "\n";
 } catch (\Exception $e) {
-    echo $e->getCode()."\n";
-    echo $e->getMessage()."\n";
+    echo $e->getCode() . "\n";
+    echo $e->getMessage() . "\n";
 }

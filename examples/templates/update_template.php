@@ -2,7 +2,7 @@
 
 namespace Examples\Templates;
 
-require dirname(__FILE__).'/../bootstrap.php';
+require __DIR__ . '/../bootstrap.php';
 
 use SparkPost\SparkPost;
 use GuzzleHttp\Client;
@@ -23,9 +23,9 @@ $promise = $sparky->request('PUT', "templates/$template_id", [
 
 try {
     $response = $promise->wait();
-    echo $response->getStatusCode()."\n";
-    print_r($response->getBody())."\n";
+    echo $response->getStatusCode() . "\n";
+    print_r($response->getBody()) . "\n";
 } catch (\Exception $e) {
-    echo $e->getCode()."\n";
-    echo $e->getMessage()."\n";
+    echo $e->getCode() . "\n";
+    echo $e->getMessage() . "\n";
 }

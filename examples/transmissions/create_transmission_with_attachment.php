@@ -2,7 +2,7 @@
 
 namespace Examples\Transmissions;
 
-require dirname(__FILE__).'/../bootstrap.php';
+require __DIR__ . '/../bootstrap.php';
 
 use SparkPost\SparkPost;
 use GuzzleHttp\Client;
@@ -13,10 +13,10 @@ $httpClient = new GuzzleAdapter(new Client());
 // In these examples, fetch API key from environment variable
 $sparky = new SparkPost($httpClient, ["key" => getenv('SPARKPOST_API_KEY')]);
 
-$filePath = dirname(__FILE__).'/';
+$filePath = __DIR__ . '/';
 $fileName = 'sparkpost.png';
-$fileType = mime_content_type($filePath.$fileName);
-$fileData = base64_encode(file_get_contents($filePath.$fileName));
+$fileType = mime_content_type($filePath . $fileName);
+$fileData = base64_encode(file_get_contents($filePath . $fileName));
 
 // put your own sending domain and test recipient address here
 $sending_domain = "steve2-test.trymsys.net";
@@ -52,9 +52,9 @@ $promise = $sparky->transmissions->post([
 
 try {
     $response = $promise->wait();
-    echo $response->getStatusCode()."\n";
-    print_r($response->getBody())."\n";
+    echo $response->getStatusCode() . "\n";
+    print_r($response->getBody()) . "\n";
 } catch (\Exception $e) {
-    echo $e->getCode()."\n";
-    echo $e->getMessage()."\n";
+    echo $e->getCode() . "\n";
+    echo $e->getMessage() . "\n";
 }

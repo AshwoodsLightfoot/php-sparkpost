@@ -2,7 +2,7 @@
 
 namespace Examples\Templates;
 
-require dirname(__FILE__).'/../bootstrap.php';
+require __DIR__ . '/../bootstrap.php';
 
 use SparkPost\SparkPost;
 use GuzzleHttp\Client;
@@ -30,13 +30,13 @@ try {
     print_r($response->getRequest());
 
     echo "Response:\n";
-    echo $response->getStatusCode()."\n";
-    print_r($response->getBody())."\n";
+    echo $response->getStatusCode() . "\n";
+    print_r($response->getBody()) . "\n";
 } catch (\Exception $e) {
     echo "Request:\n";
     print_r($e->getRequest());
 
     echo "Exception:\n";
-    echo $e->getCode()."\n";
-    echo $e->getMessage()."\n";
+    echo $e->getCode() . "\n";
+    echo $e->getMessage() . "\n";
 }
