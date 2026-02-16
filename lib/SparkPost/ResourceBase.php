@@ -2,6 +2,8 @@
 
 namespace SparkPost;
 
+use Http\Client\Exception;
+
 /**
  * Class ResourceBase.
  */
@@ -33,7 +35,7 @@ class ResourceBase
      * Sends get request to API at the set endpoint.
      *
      * @return SparkPostPromise|SparkPostResponse
-     * @throws SparkPostException
+     * @throws SparkPostException|Exception
      * @see SparkPost->request()
      */
     public function get(string $uri = '', array $payload = [], array $headers = [])
@@ -45,7 +47,7 @@ class ResourceBase
      * Sends put request to API at the set endpoint.
      *
      * @return SparkPostPromise|SparkPostResponse
-     * @throws SparkPostException
+     * @throws SparkPostException|Exception
      * @see SparkPost->request()
      */
     public function put(string $uri = '', array $payload = [], array $headers = [])
@@ -58,6 +60,7 @@ class ResourceBase
      *
      * @return SparkPostPromise|SparkPostResponse
      * @throws SparkPostException
+     * @throws Exception
      * @see SparkPost->request()
      */
     public function post(array $payload = [], array $headers = [])
@@ -69,7 +72,7 @@ class ResourceBase
      * Sends delete request to API at the set endpoint.
      *
      * @return SparkPostPromise|SparkPostResponse
-     * @throws SparkPostException
+     * @throws SparkPostException|Exception
      * @see SparkPost->request()
      */
     public function delete(string $uri = '', array $payload = [], array $headers = [])
@@ -82,6 +85,7 @@ class ResourceBase
      *
      * @return SparkPostPromise|SparkPostResponse depending on sync or async request
      * @throws SparkPostException
+     * @throws Exception
      * @see SparkPost->request()
      *
      */
